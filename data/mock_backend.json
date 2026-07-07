@@ -1,0 +1,34 @@
+{
+  "subscriptions": {
+    "ACC-4021": {"plan_tier": "Team", "billing_status": "current", "seats_used": 14, "last_login": "2026-07-06"},
+    "ACC-4088": {"plan_tier": "Business", "billing_status": "current", "seats_used": 42, "last_login": "2026-07-06"},
+    "ACC-4132": {"plan_tier": "Team", "billing_status": "current", "seats_used": 9, "last_login": "2026-07-05"},
+    "ACC-4402": {"plan_tier": "Business", "billing_status": "current", "seats_used": 60, "last_login": "2026-07-06"},
+    "ACC-4890": {"plan_tier": "Team", "billing_status": "current", "seats_used": 18, "last_login": "2026-07-07"},
+    "ACC-5112": {"plan_tier": "Team", "billing_status": "past_due", "seats_used": 18, "last_login": "2026-07-04"},
+    "ACC-5209": {"plan_tier": "Business", "billing_status": "current", "seats_used": 55, "last_login": "2026-07-06"},
+    "ACC-6021": {"plan_tier": "Enterprise", "billing_status": "current", "seats_used": 210, "last_login": "2026-07-07"},
+    "ACC-6301": {"plan_tier": "Business", "billing_status": "current", "seats_used": 38, "last_login": "2026-07-06"},
+    "ACC-9001": {"plan_tier": "Enterprise", "billing_status": "current", "seats_used": 480, "last_login": "2026-07-05"},
+    "ACC-9002": {"plan_tier": "Enterprise", "billing_status": "current", "seats_used": 320, "last_login": "2026-07-03"},
+    "ACC-9101": {"plan_tier": "Enterprise", "billing_status": "current", "seats_used": 275, "last_login": "2026-07-06"},
+    "ACC-7101": {"plan_tier": "Team", "billing_status": "current", "seats_used": 11, "last_login": "2026-07-06"},
+    "ACC-7355": {"plan_tier": "Business", "billing_status": "current", "seats_used": 47, "last_login": "2026-07-07"}
+  },
+  "accounts": {
+    "ACC-4021": {"plan_tier": "Team", "account_age_months": 8, "recent_ticket_volume": 2, "arr_band": "5k_to_25k"},
+    "ACC-4088": {"plan_tier": "Business", "account_age_months": 19, "recent_ticket_volume": 5, "arr_band": "25k_to_100k"},
+    "ACC-4132": {"plan_tier": "Team", "account_age_months": 4, "recent_ticket_volume": 1, "arr_band": "under_5k"},
+    "ACC-4402": {"plan_tier": "Business", "account_age_months": 24, "recent_ticket_volume": 3, "arr_band": "25k_to_100k"},
+    "ACC-4890": {"plan_tier": "Team", "account_age_months": 11, "recent_ticket_volume": 4, "arr_band": "5k_to_25k"},
+    "ACC-5112": {"plan_tier": "Team", "account_age_months": 6, "recent_ticket_volume": 2, "arr_band": "5k_to_25k"},
+    "ACC-5209": {"plan_tier": "Business", "account_age_months": 15, "recent_ticket_volume": 6, "arr_band": "25k_to_100k"},
+    "ACC-6021": {"plan_tier": "Enterprise", "account_age_months": 30, "recent_ticket_volume": 2, "arr_band": "100k_plus"},
+    "ACC-6301": {"plan_tier": "Business", "account_age_months": 14, "recent_ticket_volume": 1, "arr_band": "25k_to_100k"},
+    "ACC-9001": {"plan_tier": "Enterprise", "account_age_months": 36, "recent_ticket_volume": 1, "arr_band": "100k_plus"},
+    "ACC-9002": {"plan_tier": "Enterprise", "account_age_months": 22, "recent_ticket_volume": 3, "arr_band": "100k_plus"},
+    "ACC-9101": {"plan_tier": "Enterprise", "account_age_months": 27, "recent_ticket_volume": 2, "arr_band": "25k_to_100k"},
+    "ACC-7101": {"plan_tier": "Team", "account_age_months": 5, "recent_ticket_volume": 1, "arr_band": "under_5k"},
+    "ACC-7355": {"plan_tier": "Business", "account_age_months": 17, "recent_ticket_volume": 2, "arr_band": "25k_to_100k"}
+  }
+}

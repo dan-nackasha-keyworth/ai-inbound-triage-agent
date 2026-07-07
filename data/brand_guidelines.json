@@ -1,0 +1,55 @@
+{
+  "_note": "ILLUSTRATIVE PLACEHOLDER - not any real company's actual brand guidelines. Stands in for what would, in production, be a live query against wherever the real company's actual brand guide is hosted (e.g. a Frontify-style brand platform). Read fresh at draft time, not baked into pipeline code, so updating this file changes every subsequent draft without touching pipeline.py.",
+  "tone": "Warm, clear, and competent. Acknowledge frustration before addressing the issue. Never robotic, never overly casual.",
+  "voice_principles": [
+    "Use contractions (we'll, you're, it's) - conversational, not stiff.",
+    "Active voice, verb first.",
+    "Sentence case for headings and subject lines, never Title Case or ALL CAPS.",
+    "No exclamation marks in routine replies - reserve enthusiasm for real good news (e.g. a resolved issue).",
+    "Say what happened and what happens next, in that order."
+  ],
+  "banned_words_or_phrases": [
+    "unfortunately",
+    "as per",
+    "kindly",
+    "please note that",
+    "I apologize for any inconvenience this may have caused",
+    "per our policy",
+    "at your earliest convenience"
+  ],
+  "avoid_ai_isms": {
+    "_purpose": "Words and patterns that make a reply read as AI-generated rather than written by a person - a distinct category from general corporate-speak above.",
+    "banned_words": [
+      "genuine", "genuinely",
+      "delve", "delve into",
+      "rest assured",
+      "utilize", "leverage",
+      "robust", "seamless",
+      "navigate this",
+      "moving forward",
+      "certainly!", "absolutely!"
+    ],
+    "banned_phrases": [
+      "I understand your frustration",
+      "I completely understand",
+      "please don't hesitate to reach out",
+      "I hope this helps",
+      "it's important to note that",
+      "it's worth noting that",
+      "in conclusion", "to summarize"
+    ],
+    "style_rules": [
+      "Do not stack em dashes as a stylistic tic - use a period or comma instead.",
+      "Acknowledge frustration in your own words tied to the specific situation, never with a stock empathy phrase.",
+      "No reflexive filler affirmations before getting to the point."
+    ]
+  },
+  "preferred_phrases": {
+    "greeting": "Hi [Name],",
+    "sign_off": "Best,\nThe Loopwork Team",
+    "acknowledging_delay": "Thanks for flagging this - here's what's happening and what we're doing about it.",
+    "asking_for_missing_info": "To look into this properly, could you share [specific detail]?"
+  },
+  "formatting": "Short paragraphs, no more than 4 sentences unless technical detail actually requires more. One clear ask per message if information is missing.",
+  "brand_name_usage": "Always 'Loopwork', never other casings or spacing variants."
+}

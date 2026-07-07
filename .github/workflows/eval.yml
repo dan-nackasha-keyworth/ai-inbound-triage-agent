@@ -1,0 +1,31 @@
+name: Eval regression suite
+
+# Runs the fixed known-answer eval set (run_eval.py) against the real
+# API on every push, so a prompt change that regresses a previously
+# fixed bug (or breaks a true positive) fails the build automatically,
+# rather than being caught by chance on the next manual full run.
+#
+# Requires an ANTHROPIC_API_KEY secret to be added under this repo's
+# Settings -> Secrets and variables -> Actions - this workflow will
+# fail until that's set, since Claude Code cannot add repo secrets on
+# your behalf.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install anthropic python-dotenv
+      - name: Run eval regression suite
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python run_eval.py

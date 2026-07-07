@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Inbound Triage Agent</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; padding: 40px 24px; max-width: 760px; margin: 0 auto; line-height: 1.6; }
+  h1 { font-size: 22px; font-weight: 600; color: #f8fafc; margin-bottom: 8px; }
+  .subtitle { font-size: 14px; color: #64748b; margin-bottom: 28px; }
+  .card { background: #1e2130; border: 1px solid #2d3148; border-radius: 10px; padding: 16px 20px; margin-bottom: 12px; }
+  .card a { color: #60a5fa; font-size: 15px; font-weight: 600; text-decoration: none; }
+  .card a:hover { text-decoration: underline; }
+  .card p { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+  .divider { margin: 28px 0 12px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #475569; }
+  footer { margin-top: 32px; font-size: 12px; color: #475569; }
+</style>
+</head>
+<body>
+<h1>AI Inbound Triage Agent</h1>
+<p class="subtitle">A working prototype: classify, extract, score confidence, route, draft, and (when uncertain) agentically investigate an inbound customer message. Built against a fictional SaaS company - synthetic data only, no real company or customer data anywhere in this repo.</p>
+
+<div class="divider">Live views</div>
+
+<div class="card">
+  <a href="results/reference_run.html">Results dashboard</a>
+  <p>The current reference run - real per-message reasoning, drafts, and confidence scores, filterable by queue.</p>
+</div>
+
+<div class="divider">Read on GitHub (rendered automatically)</div>
+
+<div class="card">
+  <a href="README.md">README.md</a>
+  <p>Full orientation: what this is, results at a glance, how to run it, repo structure.</p>
+</div>
+
+<div class="card">
+  <a href="HOW_THE_AI_WORKS.md">HOW_THE_AI_WORKS.md</a>
+  <p>Plain-English glossary of every pipeline stage, plus the literal text of all three real prompts.</p>
+</div>
+
+<div class="divider">Architecture</div>
+
+<div class="card">
+  <a href="deck/architecture_diagram.png">Architecture diagram</a>
+  <p>Classify &rarr; confidence score &rarr; route/guardrails &rarr; draft &rarr; (if uncertain) agentic investigation.</p>
+</div>
+
+<footer>Dan Nackasha-Keyworth - a self-directed build demonstrating an AI agent design pattern, not tied to any specific employer.</footer>
+</body>
+</html>
