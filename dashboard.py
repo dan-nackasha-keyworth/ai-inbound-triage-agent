@@ -61,6 +61,9 @@ h1 { font-size: 20px; font-weight: 600; color: #f8fafc; margin-bottom: 6px; }
 .badge { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 20px; white-space: nowrap; background: var(--bg); color: var(--col); border: 1px solid var(--bdr); }
 .badge-gray { background: rgba(107,114,128,0.15); color: #9ca3af; border: 1px solid #334155; }
 .badge-mismatch { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid #7f1d1d; }
+.badge-confcheck { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid #7c5e12; }
+.badge-escalate { background: rgba(168,85,247,0.14); color: #d8b4fe; border: 1px solid #6b21a8; }
+.badge-fastresp { background: rgba(56,189,248,0.14); color: #7dd3fc; border: 1px solid #075985; }
 .tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 10px; margin: 1px; background: rgba(148,163,184,0.1); color: #94a3b8; border: 1px solid #334155; }
 .tag.flag { background: rgba(251,191,36,0.08); color: #fbbf24; border-color: #7c2d12; }
 .gt-line { font-size: 11px; color: #64748b; }
@@ -117,7 +120,9 @@ def card_html(r, idx):
     gt = r.get("ground_truth_category", "")
     pred = extraction.get("category", "N/A")
     mismatch = gt and pred and gt != pred
-    urgent = r.get("review_priority") == "urgent"
+    confcheck = r.get("confidence_check_needed", False)
+    escalate = r.get("escalate_to_senior", False)
+    fastresp = r.get("fast_response_needed", False)
     avatar_letter = queue[0] if queue else "?"
 
     snippet = r["text"][:90] + ("..." if len(r["text"]) > 90 else "")
@@ -129,8 +134,16 @@ def card_html(r, idx):
     ]
     if mismatch:
         header_badges.append(badge("mismatch", cls="badge-mismatch"))
-    if urgent:
-        header_badges.append(badge("urgent", cls="badge-mismatch"))
+    # Three distinct signals, not one blended "urgent" flag - see
+    # determine_queue's docstring in pipeline.py for why these are kept
+    # separate (routing confidence vs. topic sensitivity vs. the
+    # customer's own stated urgency are three different questions).
+    if confcheck:
+        header_badges.append(badge("verify routing", cls="badge-confcheck"))
+    if escalate:
+        header_badges.append(badge("escalate to senior", cls="badge-escalate"))
+    if fastresp:
+        header_badges.append(badge("fast response", cls="badge-fastresp"))
 
     summary = f"""
     <div class="card-summary" onclick="toggleCard({idx})">
@@ -233,8 +246,15 @@ def card_html(r, idx):
 
 def card_wrapper(r, idx):
     queue = r.get("queue", "Unknown")
-    urgent = r.get("review_priority") == "urgent"
-    return f'<div class="card" data-queue="{html.escape(queue)}" data-urgent="{"1" if urgent else "0"}">{card_html(r, idx)}</div>'
+    confcheck = r.get("confidence_check_needed", False)
+    escalate = r.get("escalate_to_senior", False)
+    fastresp = r.get("fast_response_needed", False)
+    return (
+        f'<div class="card" data-queue="{html.escape(queue)}" '
+        f'data-confcheck="{"1" if confcheck else "0"}" '
+        f'data-escalate="{"1" if escalate else "0"}" '
+        f'data-fastresp="{"1" if fastresp else "0"}">{card_html(r, idx)}</div>'
+    )
 
 
 def build_dashboard(data, source_label):
@@ -243,7 +263,11 @@ def build_dashboard(data, source_label):
 
     queues_present = ["Service", "Success", "Sales", "Team Lead Triage"]
     n_by_queue = {q: sum(1 for r in results if r.get("queue") == q) for q in queues_present}
-    n_urgent = sum(1 for r in results if r.get("review_priority") == "urgent")
+    # Three distinct counts, not one blended "urgent" count - see
+    # determine_queue in pipeline.py for why these are kept separate.
+    n_confcheck = sum(1 for r in results if r.get("confidence_check_needed"))
+    n_escalate = sum(1 for r in results if r.get("escalate_to_senior"))
+    n_fastresp = sum(1 for r in results if r.get("fast_response_needed"))
 
     accuracy = stats.get("overall_accuracy")
     accuracy_str = f"{round(accuracy * 100, 1)}%" if accuracy is not None else "N/A"
@@ -259,7 +283,7 @@ def build_dashboard(data, source_label):
         stat_card(f"{sens['false_positives']}/{sens['total_flagged']}", "sensitive false positives", "#f87171" if sens['false_positives'] else "#34d399"),
         stat_card(f"{reten['caught']}/{reten['expected']}", "retention-risk recall", "#34d399"),
         stat_card(n_by_queue.get("Team Lead Triage", 0), "manager triage", "#fbbf24"),
-        stat_card(n_urgent, "urgent review", "#f87171"),
+        stat_card(f"V:{n_confcheck} E:{n_escalate} F:{n_fastresp}", "verify / escalate / fast-response", "#fbbf24"),
     ])
 
     filter_defs = [
@@ -268,10 +292,13 @@ def build_dashboard(data, source_label):
         ("Success", "Success", QUEUE_COLORS["Success"]["col"], QUEUE_COLORS["Success"]["bg"], QUEUE_COLORS["Success"]["bdr"]),
         ("Sales", "Sales", QUEUE_COLORS["Sales"]["col"], QUEUE_COLORS["Sales"]["bg"], QUEUE_COLORS["Sales"]["bdr"]),
         ("Team Lead Triage", "Team Lead triage", QUEUE_COLORS["Team Lead Triage"]["col"], QUEUE_COLORS["Team Lead Triage"]["bg"], QUEUE_COLORS["Team Lead Triage"]["bdr"]),
-        ("urgent", "Urgent only", "#f87171", "#350a0a", "#991b1b"),
+        ("confcheck", "Verify routing", "#fbbf24", "#3a2e05", "#7c5e12"),
+        ("escalate", "Escalate to senior", "#d8b4fe", "#2e1065", "#6b21a8"),
+        ("fastresp", "Fast response", "#7dd3fc", "#082f3f", "#075985"),
     ]
+    special_filters = ("confcheck", "escalate", "fastresp")
     filter_html = "".join(
-        f'<button class="fbtn{"" if cat == "urgent" else " active"}" data-cat="{cat}" style="--col:{col};--bg:{bg};--bdr:{bdr}" onclick="toggleFilter(this)">{label}</button>'
+        f'<button class="fbtn{"" if cat in special_filters else " active"}" data-cat="{cat}" style="--col:{col};--bg:{bg};--bdr:{bdr}" onclick="toggleFilter(this)">{label}</button>'
         for cat, label, col, bg, bdr in filter_defs
     )
 
@@ -308,14 +335,16 @@ function toggleCard(idx) {{
 }}
 (function() {{
   var btns = document.querySelectorAll('.fbtn');
-  var queueBtns = document.querySelectorAll('.fbtn[data-cat]:not([data-cat="all"]):not([data-cat="urgent"])');
-  var urgentBtn = document.querySelector('.fbtn[data-cat="urgent"]');
+  var specialCats = ['confcheck', 'escalate', 'fastresp'];
+  var queueBtns = document.querySelectorAll('.fbtn[data-cat]:not([data-cat="all"])');
+  queueBtns = Array.prototype.filter.call(queueBtns, function(b) {{ return specialCats.indexOf(b.dataset.cat) === -1; }});
+  var specialBtns = Array.prototype.filter.call(btns, function(b) {{ return specialCats.indexOf(b.dataset.cat) !== -1; }});
 
   window.toggleFilter = function(btn) {{
     var cat = btn.dataset.cat;
     if (cat === 'all') {{
       queueBtns.forEach(function(b) {{ b.classList.add('active'); }});
-      urgentBtn.classList.remove('active');
+      specialBtns.forEach(function(b) {{ b.classList.remove('active'); }});
     }} else {{
       btn.classList.toggle('active');
     }}
@@ -324,10 +353,10 @@ function toggleCard(idx) {{
 
   function applyFilters() {{
     var activeQueues = [];
-    var urgentOnly = false;
+    var activeSpecial = [];
     btns.forEach(function(b) {{
       if (b.classList.contains('active')) {{
-        if (b.dataset.cat === 'urgent') urgentOnly = true;
+        if (specialCats.indexOf(b.dataset.cat) !== -1) activeSpecial.push(b.dataset.cat);
         else if (b.dataset.cat !== 'all') activeQueues.push(b.dataset.cat);
       }}
     }});
@@ -335,8 +364,13 @@ function toggleCard(idx) {{
     var shown = 0;
     cards.forEach(function(c) {{
       var matchQueue = activeQueues.length === 0 || activeQueues.indexOf(c.dataset.queue) !== -1;
-      var matchUrgent = !urgentOnly || c.dataset.urgent === '1';
-      var visible = matchQueue && matchUrgent;
+      // Special filters are OR'd together when more than one is active
+      // (e.g. "escalate OR fast-response"), not AND'd - they're
+      // independent signals, not a combined requirement.
+      var matchSpecial = activeSpecial.length === 0 || activeSpecial.some(function(cat) {{
+        return c.dataset[cat] === '1';
+      }});
+      var visible = matchQueue && matchSpecial;
       c.style.display = visible ? '' : 'none';
       if (visible) shown++;
     }});

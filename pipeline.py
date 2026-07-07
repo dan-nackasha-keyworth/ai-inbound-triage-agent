@@ -698,15 +698,35 @@ def determine_queue(extraction, confidence, config=None, message_text=None, back
             guardrail_flags.append("enterprise_ae_routing")
 
     # Phase-1 scope: every first message in a thread is human-approved
-    # before anything is sent, regardless of confidence band. The bands
-    # only affect review priority/flagging shown in the dashboard.
-    review_priority = "urgent" if (is_sensitive or confidence["band"] == "low") else "standard"
+    # before anything is sent, regardless of confidence band. The flags
+    # below only affect review priority/flagging shown in the dashboard.
+    #
+    # Three distinct, independently-true signals rather than one blended
+    # "urgent" flag - each answers a different question a reviewer needs
+    # answered, and conflating them hides which one actually applies:
+    #   - confidence_check_needed: the ROUTING might be wrong. Whoever
+    #     picks this up should double-check it's really theirs before
+    #     working it - a low-confidence signal about the AI's own read.
+    #   - escalate_to_senior: the TOPIC is sensitive (refund, compliance,
+    #     legal, security incident, etc.) and warrants a more senior or
+    #     careful set of eyes, independent of whether the routing itself
+    #     is confident.
+    #   - fast_response_needed: the CUSTOMER's message itself reads as
+    #     urgent, so it needs a quick response regardless of who owns it
+    #     or how confident the routing is - a junior agent can still
+    #     handle it fast, this isn't about seniority.
+    # A message can be any combination of these three, or none.
+    confidence_check_needed = confidence["band"] == "low"
+    escalate_to_senior = is_sensitive
+    fast_response_needed = extraction.get("urgency") == "high"
 
     return {
         "queue": queue,
         "loop_in": loop_in,
         "guardrail_flags": guardrail_flags,
-        "review_priority": review_priority,
+        "confidence_check_needed": confidence_check_needed,
+        "escalate_to_senior": escalate_to_senior,
+        "fast_response_needed": fast_response_needed,
         "requires_human_review": True,
         "sales_handling_path": sales_handling_path,
     }
@@ -935,7 +955,9 @@ def process_message(client, message, config):
         "queue": routing["queue"],
         "loop_in": routing["loop_in"],
         "guardrail_flags": routing["guardrail_flags"],
-        "review_priority": routing["review_priority"],
+        "confidence_check_needed": routing["confidence_check_needed"],
+        "escalate_to_senior": routing["escalate_to_senior"],
+        "fast_response_needed": routing["fast_response_needed"],
         "requires_human_review": routing["requires_human_review"],
         "sales_handling_path": routing["sales_handling_path"],
         "health_expansion_flag": health_flag,

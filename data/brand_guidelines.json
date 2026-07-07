@@ -46,10 +46,10 @@
   },
   "preferred_phrases": {
     "greeting": "Hi [Name],",
-    "sign_off": "Best,\nThe Loopwork Team",
+    "sign_off": "Best,\nThe Thistlewire Team",
     "acknowledging_delay": "Thanks for flagging this - here's what's happening and what we're doing about it.",
     "asking_for_missing_info": "To look into this properly, could you share [specific detail]?"
   },
   "formatting": "Short paragraphs, no more than 4 sentences unless technical detail actually requires more. One clear ask per message if information is missing.",
-  "brand_name_usage": "Always 'Loopwork', never other casings or spacing variants."
+  "brand_name_usage": "Always 'Thistlewire', never other casings or spacing variants."
 }

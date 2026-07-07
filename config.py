@@ -6,13 +6,13 @@ pipeline itself) lives in pipeline.py and reads from this object rather
 than hardcoding company specifics. Swapping this file for a different
 company's config should let the same pipeline code run unmodified -
 this is a genuinely reusable demo, not one-off code. The values below
-describe "Loopwork", a fictional project-management/team-collaboration
+describe "Thistlewire", a fictional project-management/team-collaboration
 SaaS company, standing in for any real B2B SaaS business this pattern
 could be pointed at. Nothing here names a real company.
 """
 
 CONFIG = {
-    "company_name": "Loopwork",
+    "company_name": "Thistlewire",
 
     "categories": ["Service", "Success", "Sales"],
 
@@ -44,7 +44,7 @@ CONFIG = {
         "cancel subscription",
         "downgrade",
         "switching to a competitor",
-        "leaving loopwork",
+        "leaving thistlewire",
     ],
 
     # Narrower than retention_risk_signals above: only the phrasing that

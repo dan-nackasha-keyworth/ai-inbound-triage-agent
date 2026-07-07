@@ -57,6 +57,18 @@ Routing every contradictory-signals message straight to Success would make Succe
 
 "Close Account" and "Cancel Subscription" are 2 of the 8 real Help Centre support-form categories - a customer explicitly using that form is asking for a routine account-lifecycle action, not necessarily opening a relationship conversation. Support keeps ownership; Success is looped in only when the account is large (`arr_band` in config's `large_account_arr_bands`) - the retention stakes are high enough there to warrant proactive visibility. Softer language ("we'll have to look at other providers") isn't a formal request and keeps the original behaviour: Success owns it directly, since that genuinely is a relationship conversation.
 
+### Three review-priority signals, not one blended "urgent" flag
+
+An earlier version of this build had a single `review_priority` field ("urgent" vs "standard"), set whenever the message was sensitive *or* low-confidence. That conflates two different questions into one flag, and misses a third signal entirely - all three matter to a reviewer for different reasons:
+
+| Signal | True when | What it tells the reviewer |
+|---|---|---|
+| `confidence_check_needed` | `confidence["band"] == "low"` | The AI's own routing might be wrong - double-check this is really yours before working it. |
+| `escalate_to_senior` | a sensitive topic is present | The topic itself (refund, compliance, legal, security incident) warrants a more senior or careful set of eyes, independent of routing confidence. |
+| `fast_response_needed` | `extraction["urgency"] == "high"` | The customer's own message reads as urgent - this needs a quick response regardless of who owns it or how confident the routing was. A junior agent can still handle it fast; this isn't about seniority. |
+
+A message can be any combination of these, or none. A calm, low-urgency message can still need `escalate_to_senior` (a coolly-worded refund request); a customer who wrote "URGENT!!" doesn't automatically get escalated to a senior unless the topic itself is sensitive. Keeping them separate means the dashboard can show *which* thing applies, rather than one flag that means three different things depending on context.
+
 ---
 
 ## Prompt 1 of 3: `classify_and_extract` (model: claude-haiku-4-5)
