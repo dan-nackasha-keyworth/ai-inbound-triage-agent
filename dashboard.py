@@ -278,12 +278,16 @@ def build_dashboard(data, source_label):
         stat_card(f"{stats['n_scored']}/{stats['n_total']}", "scored / total"),
         stat_card(accuracy_str, "accuracy", "#34d399"),
         stat_card(f"${stats['total_cost_usd']:.3f}", "total cost", "#60a5fa"),
-        stat_card(f"H:{stats['confidence_band_counts']['high']} M:{stats['confidence_band_counts']['medium']} L:{stats['confidence_band_counts']['low']}", "confidence bands"),
+        stat_card(stats['confidence_band_counts']['high'], "high confidence", BAND_COLORS["high"]["col"]),
+        stat_card(stats['confidence_band_counts']['medium'], "medium confidence", BAND_COLORS["medium"]["col"]),
+        stat_card(stats['confidence_band_counts']['low'], "low confidence", BAND_COLORS["low"]["col"]),
         stat_card(f"{sens['caught']}/{sens['expected']}", "sensitive-topic recall", "#34d399" if sens['false_positives'] == 0 else "#fbbf24"),
         stat_card(f"{sens['false_positives']}/{sens['total_flagged']}", "sensitive false positives", "#f87171" if sens['false_positives'] else "#34d399"),
         stat_card(f"{reten['caught']}/{reten['expected']}", "retention-risk recall", "#34d399"),
         stat_card(n_by_queue.get("Team Lead Triage", 0), "manager triage", "#fbbf24"),
-        stat_card(f"V:{n_confcheck} E:{n_escalate} F:{n_fastresp}", "verify / escalate / fast-response", "#fbbf24"),
+        stat_card(n_confcheck, "verify routing", "#fbbf24"),
+        stat_card(n_escalate, "escalate to senior", "#d8b4fe"),
+        stat_card(n_fastresp, "fast response", "#7dd3fc"),
     ])
 
     filter_defs = [

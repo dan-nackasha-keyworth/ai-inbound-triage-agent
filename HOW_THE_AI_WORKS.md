@@ -238,6 +238,8 @@ Two reasons. First, cost/latency: calling every tool regardless of relevance on 
 
 ## Error handling and latency (why neither is a production risk)
 
+**Measured, not estimated:** timed on the 120-message reference run (`results/reference_run.json`), run sequentially with no concurrency. Per-message latency: median 7.3s, mean 8.7s, range 4.8-17.6s. Messages that trigger the agentic investigation step (about 38% of this dataset) run measurably slower - median 11.0s, mean 11.8s - versus median 6.3s, mean 6.8s for messages that don't, since that step makes 1-4 additional tool-call round trips before drafting. A full 120-message batch takes roughly 17 minutes end-to-end at this sequential pace.
+
 In production, this pipeline would run as a background enrichment step, not a blocking one: a new message would still land in the normal helpdesk/CRM inbox exactly as it does today, visible and workable by a human immediately. The AI call happens asynchronously and writes its output (category, confidence, draft, flags) onto the ticket once it finishes - it never has to complete before a human can pick up and work the ticket manually.
 
 That means a slow response or a failed API call (rate limit, timeout, partial outage) has a bounded, safe failure mode: that one ticket's enrichment simply arrives late or not at all, and a human handles it exactly as they would have without the AI at all. Nothing blocks, nothing silently mis-routes, and no message is ever auto-sent. `batch_runner.py` sets explicit `timeout=60.0` and `max_retries=3` on the API client so transient failures retry automatically before falling back to "no enrichment yet" rather than raising.
@@ -249,5 +251,5 @@ That means a slow response or a failed API call (rate limit, timeout, partial ou
 ## Honest limitations
 
 - **The confidence rubric needs real recalibration, not just tuning.** Every weight in `score_confidence`'s rubric was chosen by looking at the score distribution on this build's own small synthetic dataset - a reasonable starting point, not a substitute for real usage data. It should be treated as a first draft.
-- **This is a prototype, not a production system.** 100 synthetic messages is enough to exercise the pipeline's design and guardrails, not enough to make a statistical accuracy claim that would hold on real, messy production traffic.
+- **This is a prototype, not a production system.** 140 synthetic messages is enough to exercise the pipeline's design and guardrails, not enough to make a statistical accuracy claim that would hold on real, messy production traffic.
 - **Attachment/malware scanning is deliberately out of scope.** That's a specialised security capability that belongs in a dedicated scanning service ahead of this pipeline, not homebrewed inside a triage agent.

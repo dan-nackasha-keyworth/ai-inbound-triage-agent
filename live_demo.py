@@ -1,7 +1,7 @@
 """
 Live, on-the-spot demo runner: takes one message you type in and runs it
 through the real pipeline in real time, exactly like every message in the
-100-message dev set - same classify/extract/confidence/route/draft/
+120-message dev set - same classify/extract/confidence/route/draft/
 investigate logic, same live model calls. Nothing here is pre-scored or
 pre-recorded.
 

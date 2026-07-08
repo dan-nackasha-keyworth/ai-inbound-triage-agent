@@ -6,11 +6,12 @@ Nothing here is a real company. "Thistlewire" and everything in `data/` is synth
 
 ## Results at a glance
 
-Real, measured results from running the 86-message dev set (20 more held out and never touched during development) - see `results/reference_run.html` for the full per-message breakdown (drafts, confidence scores, reasoning):
+Real, measured results from running the 120-message dev set (20 more held out and never touched during development) - see `results/reference_run.html` for the full per-message breakdown (drafts, confidence scores, reasoning):
 
-- **98.8% accuracy** (85/86). The one "miss" is a deliberately ambiguous message ("I want to upgrade my plan please") that scored 0 confidence and was correctly escalated to Team Lead Triage rather than force-guessed - arguably 86/86 on the behaviour that matters.
-- **6/6 sensitive-topic detections, 0 false positives.** 6/6 retention-risk detections, 0 false positives.
-- **$1.047 total cost** for 86 messages (~$0.012/message).
+- **97.5% accuracy** (117/120). All 3 "misses" are deliberately ambiguous or contradictory messages that scored low confidence and were correctly escalated to Team Lead Triage rather than force-guessed - arguably 120/120 on the behaviour that matters.
+- **8/8 sensitive-topic detections, 0 false positives.** 10/10 retention-risk detections, 0 false positives.
+- **$1.528 total cost** for 120 messages (~$0.013/message).
+- **7.3s median latency per message** (8.7s mean, 4.8-17.6s range), run sequentially with no concurrency. Messages that trigger the investigation step run slower (11.0s median) than ones that don't (6.3s median) - see [`HOW_THE_AI_WORKS.md`](HOW_THE_AI_WORKS.md) for the full breakdown and why this isn't a production risk.
 - The agentic investigation step is exercised across its full range in this run: correctly declining to guess a reference when none is given, correctly reporting a reference that doesn't exist in the system, and correctly pulling and reasoning over real account data (including a genuine Help Centre search) when one does.
 - Every draft waits for human review, regardless of confidence - nothing here ever auto-sends.
 
@@ -31,7 +32,7 @@ In short: classify + extract (one Haiku 4.5 call, structured JSON output) -> con
 - `regenerate_walkthrough.py` - re-runs a chosen set of message IDs with an optional runtime company-name override, for producing a differently-branded dashboard without ever hardcoding a name into a tracked file.
 - `run_eval.py` - a small, fixed eval-as-CI suite (known-answer regression cases) wired to run on every push (see `.github/workflows/eval.yml`).
 - `preview_server.py` - a restricted local static file server (blocks `.env`, `.git`, `__pycache__` from being served or listed).
-- `data/` - 106 synthetic sample messages (86 dev / 20 held-out) with ground-truth labels, plus mock brand guidelines, help-centre articles, playbooks, and backend records the pipeline reads from.
+- `data/` - 140 synthetic sample messages (120 dev / 20 held-out) with ground-truth labels, plus mock brand guidelines, help-centre articles, playbooks, and backend records the pipeline reads from.
 - `deck/architecture_diagram.png` / `.html` - the pipeline architecture diagram.
 
 ## Design choices worth knowing about
