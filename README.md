@@ -4,6 +4,10 @@ A working prototype that reads inbound customer messages for a fictional B2B Saa
 
 Nothing here is a real company. "Thistlewire" and everything in `data/` is synthetic, built to exercise the pipeline's guardrails on realistic-but-invented scenarios - the point of this project is the pipeline design, not the fictional company behind it.
 
+**[Live results dashboard](https://dan-nackasha-keyworth.github.io/ai-inbound-triage-agent/results/reference_run.html)** &middot; **[Commercial impact bridge](https://dan-nackasha-keyworth.github.io/ai-inbound-triage-agent/results/commercial_impact.html)** &middot; **[Architecture diagram](https://dan-nackasha-keyworth.github.io/ai-inbound-triage-agent/deck/architecture_diagram.png)** &middot; **[Full technical write-up](HOW_THE_AI_WORKS.md)**
+
+![Results dashboard - 120/120 scored, 97.5% accuracy, confidence bands, sensitive-topic and retention-risk recall, review-priority signals](deck/dashboard_screenshot.png)
+
 ## Results at a glance
 
 Real, measured results from running the 120-message dev set (20 more held out and never touched during development) - see `results/reference_run.html` for the full per-message breakdown (drafts, confidence scores, reasoning):
@@ -34,7 +38,7 @@ In short: classify + extract (one Haiku 4.5 call, structured JSON output) -> con
 - `regenerate_walkthrough.py` - re-runs a chosen set of message IDs with an optional runtime company-name override, for producing a differently-branded dashboard without ever hardcoding a name into a tracked file.
 - `run_eval.py` - a small, fixed eval-as-CI suite (known-answer regression cases) wired to run on every push (see `.github/workflows/eval.yml`).
 - `calibration_report.py` - reads `data/outcome_tags.json` (reviewer-recorded outcomes) and account health signals, and surfaces patterns for a human to act on - the "learning" half of the feedback loop. Never edits `config.py` itself.
-- `commercial_impact.py` - ties measured pipeline signals (Sales routing, expansion flags, retention-risk catches) to an illustrative Net New ARR bridge and account tiering. See "Commercial impact" in `HOW_THE_AI_WORKS.md`.
+- `commercial_impact.py` - ties measured pipeline signals (Sales routing, expansion flags, retention-risk catches) to an illustrative Net New ARR bridge and account tiering. Prints to the terminal by default; `--html` also writes `results/commercial_impact.html`. See "Commercial impact" in `HOW_THE_AI_WORKS.md`.
 - `preview_server.py` - a restricted local static file server (blocks `.env`, `.git`, `__pycache__` from being served or listed).
 - `data/` - 140 synthetic sample messages (120 dev / 20 held-out) with ground-truth labels, plus mock brand guidelines, help-centre articles, playbooks, backend records, account health/VoC signals, and illustrative outcome tags the pipeline reads from.
 - `deck/architecture_diagram.png` / `.html` - the pipeline architecture diagram, including the feedback loop.
@@ -59,7 +63,7 @@ python dashboard.py outputs/run_<timestamp>_dev.json
 python live_demo.py "type any message here"
 python run_eval.py
 python calibration_report.py
-python commercial_impact.py
+python commercial_impact.py --html
 ```
 
 ## What this is (and isn't)

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<title>Commercial impact - Net New ARR bridge</title>
+<style>
+:root { color-scheme: dark; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; padding: 24px; font-size: 13px; line-height: 1.5; }
+h1 { font-size: 20px; font-weight: 600; color: #f8fafc; margin-bottom: 6px; }
+.subtitle { font-size: 13px; color: #64748b; margin-bottom: 22px; }
+
+.stats { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+.stat { background: #1a1d2e; border: 1px solid #2d3149; border-radius: 8px; padding: 10px 14px; text-align: center; min-width: 96px; flex: 1; }
+.stat .sv { font-size: 18px; font-weight: 700; color: var(--col, #f8fafc); }
+.stat .sl { font-size: 10px; color: #64748b; margin-top: 3px; }
+
+.filter-bar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; padding: 12px 14px; background: #141628; border: 1px solid #2d3149; border-radius: 8px; }
+.filter-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: #475569; margin-right: 4px; white-space: nowrap; }
+.fbtn { padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid #334155; background: #1a1d2e; color: #475569; transition: all 0.15s; }
+.fbtn.active { background: var(--bg); border-color: var(--bdr); color: var(--col); }
+.fbtn:hover { opacity: 0.85; }
+.row-hint { font-size: 10px; color: #475569; margin-left: auto; white-space: nowrap; }
+
+.divider { margin: 26px 0 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #475569; display: flex; align-items: center; gap: 8px; }
+.divider::after { content: ''; flex: 1; height: 1px; background: #2d3148; }
+
+.pipeline { display: flex; flex-direction: column; gap: 10px; }
+.card { background: #1e2130; border: 1px solid #2d3148; border-radius: 10px; overflow: hidden; transition: border-color 0.2s; }
+.card:hover { border-color: #4a5080; }
+.card-summary { padding: 12px 16px; display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+.avatar { width: 32px; height: 32px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; background: var(--bg); color: var(--col); border: 1px solid var(--bdr); }
+.card-body { flex: 1; min-width: 0; }
+.card-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 5px; }
+.msg-id { font-family: ui-monospace, monospace; color: #64748b; font-size: 11px; }
+.msg-snip { font-size: 12px; color: #94a3b8; flex: 1; min-width: 160px; }
+.header-right { display: flex; align-items: center; gap: 6px; margin-left: auto; flex-shrink: 0; }
+.badge { font-size: 10px; font-weight: 600; padding: 3px 9px; border-radius: 20px; white-space: nowrap; background: var(--bg); color: var(--col); border: 1px solid var(--bdr); }
+.badge-gray { background: rgba(107,114,128,0.15); color: #9ca3af; border: 1px solid #334155; }
+.badge-mismatch { background: rgba(239,68,68,0.12); color: #fca5a5; border: 1px solid #7f1d1d; }
+.badge-confcheck { background: rgba(251,191,36,0.12); color: #fbbf24; border: 1px solid #7c5e12; }
+.badge-escalate { background: rgba(168,85,247,0.14); color: #d8b4fe; border: 1px solid #6b21a8; }
+.badge-fastresp { background: rgba(56,189,248,0.14); color: #7dd3fc; border: 1px solid #075985; }
+.tag { display: inline-block; font-size: 10px; padding: 2px 8px; border-radius: 10px; margin: 1px; background: rgba(148,163,184,0.1); color: #94a3b8; border: 1px solid #334155; }
+.tag.flag { background: rgba(251,191,36,0.08); color: #fbbf24; border-color: #7c2d12; }
+.gt-line { font-size: 11px; color: #64748b; }
+.gt-line b { color: #cbd5e1; font-weight: 500; }
+
+.detail { display: none; border-top: 1px solid #2d3148; padding: 18px 20px; background: #171924; }
+.detail.open { display: block; }
+.detail h3 { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.07em; margin: 16px 0 8px; }
+.detail h3:first-child { margin-top: 0; }
+.detail p { font-size: 12px; color: #94a3b8; line-height: 1.6; margin-bottom: 6px; }
+.dl { display: flex; gap: 8px; font-size: 12px; padding: 3px 0; }
+.dl .k { color: #64748b; min-width: 130px; flex-shrink: 0; }
+.dl .v { color: #cbd5e1; }
+.rubric { font-family: ui-monospace, monospace; font-size: 11px; padding: 2px 0; }
+.rubric.pos { color: #6ee7a0; }
+.rubric.neg { color: #fb923c; }
+.quote { background: #1e2130; border-left: 2px solid #3b82f6; border-radius: 4px; padding: 10px 14px; font-size: 12px; color: #cbd5e1; line-height: 1.6; margin: 4px 0 10px; }
+.quote.agent { border-left-color: #a78bfa; }
+.reasoning { font-style: italic; color: #64748b; font-size: 12px; }
+</style>
+</head>
+<body>
+<h1>Commercial impact: Net New ARR bridge</h1>
+<p class="subtitle">ILLUSTRATIVE - ties this build's measured pipeline signals (Sales routing, expansion flags, retention-risk catches) to Net New ARR, the same real revenue bridge Salesforce reports internally as "NNAOV." Dollar assumptions (deal size, close rate, expansion/contraction rates) are placeholders in config.py, not measured data - see HOW_THE_AI_WORKS.md's "Commercial impact" section for full methodology.</p>
+
+<div class="stats"><div class="stat" style="--col:#f87171"><div class="sv">$-319,925</div><div class="sl">Net New ARR (NNAOV-style bridge)</div></div><div class="stat" style="--col:#60a5fa"><div class="sv">$127,400</div><div class="sl">New Logo ARR</div></div><div class="stat" style="--col:#34d399"><div class="sv">$13,575</div><div class="sl">Expansion ARR</div></div><div class="stat" style="--col:#fbbf24"><div class="sv">-$8,900</div><div class="sl">Contraction ARR</div></div><div class="stat" style="--col:#f87171"><div class="sv">-$452,000</div><div class="sl">Churned ARR</div></div><div class="stat" style="--col:#93c5fd"><div class="sv">54.6%</div><div class="sl">GRR (retention health)</div></div><div class="stat" style="--col:#93c5fd"><div class="sv">55.9%</div><div class="sl">NRR (retention health)</div></div></div>
+
+<div class="quote" style="margin-top:14px"><b>Why this is negative:</b> 2 of the 14 known mock accounts (both large ARR) sent formal close/cancel requests in this 120-message synthetic set - with a base this small, 2 large churns dominate the bridge. Not a claim about real churn rates, but a real illustration of why a dollar-weighted metric matters: a vanity metric like new-logo count (23 this run) would look fine and completely miss it.</div>
+
+<div class="divider">The bridge</div>
+<div class="quote">
+  Net New ARR = New Logo ($127,400) + Expansion ($13,575) &minus; Contraction ($8,900) &minus; Churn ($452,000) = <b>$-319,925</b>
+</div>
+<p class="reasoning" style="margin-top:10px">
+  New Logo: 23 net-new Sales prospects, 25% assumed close rate.
+  Expansion: 3/29 expansion signals priced (rest had no known account on file).
+  Contraction: 2/2 at-risk signals priced.
+  Churn: 2/5 formal close/cancel requests priced.
+</p>
+
+<div class="divider">Known account base by tier</div>
+<p class="reasoning" style="margin-bottom:10px">Thresholds (mid_market_arr_threshold, enterprise_arr_threshold in config.py) are per-company presets, not universal constants.</p>
+<div class="dl"><span class="k">Self Serve</span><span class="v">2 accounts &middot; $5,300 total ARR</span></div><div class="dl"><span class="k">Mid Market</span><span class="v">6 accounts &middot; $169,300 total ARR</span></div><div class="dl"><span class="k">Enterprise</span><span class="v">6 accounts &middot; $840,000 total ARR</span></div>
+
+</body>
+</html>

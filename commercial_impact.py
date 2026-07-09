@@ -15,19 +15,23 @@ is no real revenue anywhere in this repo. What IS real: which
 messages triggered which signal, and which of those signals could be
 tied to a known mock account with an actual arr_usd figure on file.
 
-Usage: python commercial_impact.py
+Usage: python commercial_impact.py           (prints to terminal)
+       python commercial_impact.py --html     (also writes results/commercial_impact.html)
 """
 
-import json
+import html as html_module
+import sys
 from pathlib import Path
 
 from config import CONFIG
 from pipeline import classify_account_tier
+from dashboard import CSS, stat_card
 
 DATA_DIR = Path(__file__).parent / "data"
 
 
 def load_json(path):
+    import json
     with open(path, encoding="utf-8") as f:
         return json.load(f)
 
@@ -38,7 +42,7 @@ def account_for(ref, backend):
     return backend.get("accounts", {}).get(ref)
 
 
-def main():
+def compute():
     reference_run = load_json(Path(__file__).parent / "results" / "reference_run.json")
     backend = load_json(DATA_DIR / "mock_backend.json")
     results = [r for r in reference_run["results"] if "extraction" in r]
@@ -109,14 +113,32 @@ def main():
     grr_pct = (total_known_arr - contraction_arr - churned_arr) / total_known_arr * 100 if total_known_arr else None
     nrr_pct = (total_known_arr - contraction_arr - churned_arr + expansion_arr) / total_known_arr * 100 if total_known_arr else None
 
+    tier_counts = {"self_serve": 0, "mid_market": 0, "enterprise": 0}
+    tier_arr = {"self_serve": 0.0, "mid_market": 0.0, "enterprise": 0.0}
+    for account in known_accounts:
+        tier = classify_account_tier(account["arr_usd"], CONFIG)
+        tier_counts[tier] += 1
+        tier_arr[tier] += account["arr_usd"]
+
+    return {
+        "new_logo_arr": new_logo_arr, "new_logo_count": new_logo_count, "close_rate": close_rate,
+        "expansion_arr": expansion_arr, "expansion_signals_total": expansion_signals_total, "expansion_signals_priced": expansion_signals_priced,
+        "contraction_arr": contraction_arr, "at_risk_signals_total": at_risk_signals_total, "at_risk_signals_priced": at_risk_signals_priced,
+        "churned_arr": churned_arr, "churn_events_total": churn_events_total, "churn_events_priced": churn_events_priced,
+        "nnaov": nnaov, "total_known_arr": total_known_arr, "grr_pct": grr_pct, "nrr_pct": nrr_pct,
+        "tier_counts": tier_counts, "tier_arr": tier_arr,
+    }
+
+
+def print_report(d):
     print("Commercial impact estimate - ILLUSTRATIVE, see module docstring\n")
-    print(f"New Logo ARR:    ${new_logo_arr:,.0f}  ({new_logo_count} net-new Sales prospects, {close_rate:.0%} assumed close rate)")
-    print(f"Expansion ARR:   ${expansion_arr:,.0f}  ({expansion_signals_priced}/{expansion_signals_total} expansion signals priced - rest had no known account on file)")
-    print(f"Contraction ARR: -${contraction_arr:,.0f}  ({at_risk_signals_priced}/{at_risk_signals_total} at-risk signals priced)")
-    print(f"Churned ARR:     -${churned_arr:,.0f}  ({churn_events_priced}/{churn_events_total} formal close/cancel requests priced)")
-    print(f"\nNet New ARR (NNAOV-style bridge) = ${nnaov:,.0f}")
-    print(f"  = New Logo (${new_logo_arr:,.0f}) + Expansion (${expansion_arr:,.0f}) - Contraction (${contraction_arr:,.0f}) - Churn (${churned_arr:,.0f})")
-    if nnaov < 0:
+    print(f"New Logo ARR:    ${d['new_logo_arr']:,.0f}  ({d['new_logo_count']} net-new Sales prospects, {d['close_rate']:.0%} assumed close rate)")
+    print(f"Expansion ARR:   ${d['expansion_arr']:,.0f}  ({d['expansion_signals_priced']}/{d['expansion_signals_total']} expansion signals priced - rest had no known account on file)")
+    print(f"Contraction ARR: -${d['contraction_arr']:,.0f}  ({d['at_risk_signals_priced']}/{d['at_risk_signals_total']} at-risk signals priced)")
+    print(f"Churned ARR:     -${d['churned_arr']:,.0f}  ({d['churn_events_priced']}/{d['churn_events_total']} formal close/cancel requests priced)")
+    print(f"\nNet New ARR (NNAOV-style bridge) = ${d['nnaov']:,.0f}")
+    print(f"  = New Logo (${d['new_logo_arr']:,.0f}) + Expansion (${d['expansion_arr']:,.0f}) - Contraction (${d['contraction_arr']:,.0f}) - Churn (${d['churned_arr']:,.0f})")
+    if d["nnaov"] < 0:
         print(
             "  NOTE: negative - driven by 2 of the 14 known mock accounts (both\n"
             "  large enterprise ARR) sending formal close/cancel requests in this\n"
@@ -127,21 +149,92 @@ def main():
         )
 
     print(f"\nRetention health (reported separately, not folded into the bridge above):")
-    if grr_pct is not None:
-        print(f"  GRR: {grr_pct:.1f}%  (of ${total_known_arr:,.0f} known-account ARR base, contraction+churn only)")
-        print(f"  NRR: {nrr_pct:.1f}%  (same base, contraction+churn netted against expansion)")
+    if d["grr_pct"] is not None:
+        print(f"  GRR: {d['grr_pct']:.1f}%  (of ${d['total_known_arr']:,.0f} known-account ARR base, contraction+churn only)")
+        print(f"  NRR: {d['nrr_pct']:.1f}%  (same base, contraction+churn netted against expansion)")
     else:
         print("  No known-account ARR base to compute against.")
 
     print(f"\nKnown account base by tier (thresholds are per-company config, not universal - see config.py):")
-    tier_counts = {"self_serve": 0, "mid_market": 0, "enterprise": 0}
-    tier_arr = {"self_serve": 0.0, "mid_market": 0.0, "enterprise": 0.0}
-    for account in known_accounts:
-        tier = classify_account_tier(account["arr_usd"], CONFIG)
-        tier_counts[tier] += 1
-        tier_arr[tier] += account["arr_usd"]
     for tier in ("self_serve", "mid_market", "enterprise"):
-        print(f"  {tier:<11} {tier_counts[tier]:>2} accounts, ${tier_arr[tier]:,.0f} total ARR")
+        print(f"  {tier:<11} {d['tier_counts'][tier]:>2} accounts, ${d['tier_arr'][tier]:,.0f} total ARR")
+
+
+def render_html(d):
+    esc = html_module.escape
+    bridge_note = ""
+    if d["nnaov"] < 0:
+        bridge_note = (
+            '<div class="quote" style="margin-top:14px">'
+            "<b>Why this is negative:</b> 2 of the 14 known mock accounts (both large ARR) sent formal "
+            "close/cancel requests in this 120-message synthetic set - with a base this small, 2 large "
+            "churns dominate the bridge. Not a claim about real churn rates, but a real illustration of "
+            "why a dollar-weighted metric matters: a vanity metric like new-logo count (23 this run) "
+            "would look fine and completely miss it."
+            "</div>"
+        )
+
+    tier_rows = "".join(
+        f'<div class="dl"><span class="k">{esc(tier.replace("_", " ").title())}</span>'
+        f'<span class="v">{d["tier_counts"][tier]} accounts &middot; ${d["tier_arr"][tier]:,.0f} total ARR</span></div>'
+        for tier in ("self_serve", "mid_market", "enterprise")
+    )
+
+    grr_str = f"{d['grr_pct']:.1f}%" if d["grr_pct"] is not None else "n/a"
+    nrr_str = f"{d['nrr_pct']:.1f}%" if d["nrr_pct"] is not None else "n/a"
+
+    stat_cards = "".join([
+        stat_card(f"${d['nnaov']:,.0f}", "Net New ARR (NNAOV-style bridge)", "#34d399" if d["nnaov"] >= 0 else "#f87171"),
+        stat_card(f"${d['new_logo_arr']:,.0f}", "New Logo ARR", "#60a5fa"),
+        stat_card(f"${d['expansion_arr']:,.0f}", "Expansion ARR", "#34d399"),
+        stat_card(f"-${d['contraction_arr']:,.0f}", "Contraction ARR", "#fbbf24"),
+        stat_card(f"-${d['churned_arr']:,.0f}", "Churned ARR", "#f87171"),
+        stat_card(grr_str, "GRR (retention health)", "#93c5fd"),
+        stat_card(nrr_str, "NRR (retention health)", "#93c5fd"),
+    ])
+
+    return f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<title>Commercial impact - Net New ARR bridge</title>
+<style>{CSS}</style>
+</head>
+<body>
+<h1>Commercial impact: Net New ARR bridge</h1>
+<p class="subtitle">ILLUSTRATIVE - ties this build's measured pipeline signals (Sales routing, expansion flags, retention-risk catches) to Net New ARR, the same real revenue bridge Salesforce reports internally as "NNAOV." Dollar assumptions (deal size, close rate, expansion/contraction rates) are placeholders in config.py, not measured data - see HOW_THE_AI_WORKS.md's "Commercial impact" section for full methodology.</p>
+
+<div class="stats">{stat_cards}</div>
+
+{bridge_note}
+
+<div class="divider">The bridge</div>
+<div class="quote">
+  Net New ARR = New Logo (${d['new_logo_arr']:,.0f}) + Expansion (${d['expansion_arr']:,.0f}) &minus; Contraction (${d['contraction_arr']:,.0f}) &minus; Churn (${d['churned_arr']:,.0f}) = <b>${d['nnaov']:,.0f}</b>
+</div>
+<p class="reasoning" style="margin-top:10px">
+  New Logo: {d['new_logo_count']} net-new Sales prospects, {d['close_rate']:.0%} assumed close rate.
+  Expansion: {d['expansion_signals_priced']}/{d['expansion_signals_total']} expansion signals priced (rest had no known account on file).
+  Contraction: {d['at_risk_signals_priced']}/{d['at_risk_signals_total']} at-risk signals priced.
+  Churn: {d['churn_events_priced']}/{d['churn_events_total']} formal close/cancel requests priced.
+</p>
+
+<div class="divider">Known account base by tier</div>
+<p class="reasoning" style="margin-bottom:10px">Thresholds (mid_market_arr_threshold, enterprise_arr_threshold in config.py) are per-company presets, not universal constants.</p>
+{tier_rows}
+
+</body>
+</html>"""
+
+
+def main():
+    d = compute()
+    print_report(d)
+    if "--html" in sys.argv:
+        out_path = Path(__file__).parent / "results" / "commercial_impact.html"
+        out_path.write_text(render_html(d), encoding="utf-8")
+        print(f"\nWrote {out_path}")
 
 
 if __name__ == "__main__":
