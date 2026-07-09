@@ -609,6 +609,23 @@ def account_health_is_risk(health_context, config):
     return bool(reasons), reasons
 
 
+def classify_account_tier(arr_usd, config):
+    """Deterministic, config-driven account tiering (no API call). Every
+    company sets these thresholds differently - see mid_market_arr_threshold
+    and enterprise_arr_threshold in config.py, which are Thistlewire's own
+    presets, not universal constants. Used by commercial_impact.py to weight
+    illustrative revenue-impact estimates by account size; not currently
+    wired into routing or confidence - account size alone doesn't change
+    which team should own a message."""
+    if arr_usd is None:
+        return None
+    if arr_usd >= config.get("enterprise_arr_threshold", float("inf")):
+        return "enterprise"
+    if arr_usd >= config.get("mid_market_arr_threshold", float("inf")):
+        return "mid_market"
+    return "self_serve"
+
+
 def determine_queue(extraction, confidence, config=None, message_text=None, backend=None):
     """Guardrail routing: sensitive topics and retention risk override
     the raw category; contradictory signals escalate to Team Lead Triage

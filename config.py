@@ -256,4 +256,43 @@ CONFIG = {
     "csat_risk_bands": ["dissatisfied"],
     "ces_risk_bands": ["high_effort"],
     "health_risk_signal_tags": ["renewal_at_risk", "support_escalation_last_30d"],
+
+    # --- Account tiering + commercial impact (commercial_impact.py) -------
+    # Every company sets these differently - these are Thistlewire's
+    # presets, not universal constants. An account counts as "mid_market"
+    # at or above mid_market_arr_threshold, "enterprise" at or above
+    # enterprise_arr_threshold, and "self_serve" below mid_market. See
+    # classify_account_tier in pipeline.py and data/mock_backend.json's
+    # accounts.*.arr_usd (a real dollar figure, not just the coarser
+    # arr_band used elsewhere in this build).
+    "mid_market_arr_threshold": 5_000,
+    "enterprise_arr_threshold": 50_000,
+
+    # Illustrative deal-size assumptions (USD ARR) for a closed net-new
+    # Sales prospect, by team_size_band (see classify_and_extract). Used
+    # only by commercial_impact.py to estimate New Logo ARR - these are
+    # placeholder assumptions a real deployment would replace with actual
+    # historical close data, not a validated pricing model.
+    "assumed_new_logo_arr_by_team_size": {
+        "under_10": 1_800,
+        "10_to_50": 8_000,
+        "50_to_200": 22_000,
+        "200_to_1000": 65_000,
+        "1000_plus": 150_000,
+        "unknown": 4_000,
+    },
+
+    # Illustrative close rate applied to New Logo ARR estimates - not every
+    # qualified Sales conversation closes. A placeholder assumption, same
+    # caveat as above.
+    "assumed_new_logo_close_rate": 0.25,
+
+    # Illustrative expansion/contraction rates applied to an existing
+    # account's arr_usd when the pipeline surfaces an expansion signal
+    # (health_expansion_flag or a health-signal business outcome) or an
+    # at-risk signal (account_health_is_risk) respectively. Placeholder
+    # assumptions, not measured expansion/contraction values - a real
+    # deployment would replace these with actual upsell/downsell history.
+    "assumed_expansion_rate": 0.15,
+    "assumed_contraction_rate": 0.10,
 }
