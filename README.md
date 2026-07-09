@@ -8,14 +8,14 @@ Nothing here is a real company. "Thistlewire" and everything in `data/` is synth
 
 **[Live results dashboard](https://ddkeyworth.github.io/ai-inbound-triage-agent/results/reference_run.html)** &middot; **[Commercial impact bridge](https://ddkeyworth.github.io/ai-inbound-triage-agent/results/commercial_impact.html)** &middot; **[Architecture diagram](https://ddkeyworth.github.io/ai-inbound-triage-agent/deck/architecture_diagram.png)** &middot; **[Full technical write-up](HOW_THE_AI_WORKS.md)**
 
-![Results dashboard - 120/120 scored, 97.5% accuracy, confidence bands, sensitive-topic and retention-risk recall, review-priority signals](deck/dashboard_screenshot.png)
+![Results dashboard - 120/120 scored, 97.5% accuracy, confidence bands, sensitive-topic and retention-risk (churn-risk) recall, review-priority signals](deck/dashboard_screenshot.png)
 
 ## Results at a glance
 
 Real, measured results from running the 120-message dev set (20 more held out and never touched during development) - see `results/reference_run.html` for the full per-message breakdown (drafts, confidence scores, reasoning):
 
 - **97.5% accuracy** (117/120). All 3 "misses" are deliberately ambiguous or contradictory messages that scored low confidence and were correctly escalated to Team Lead Triage rather than force-guessed - arguably 120/120 on the behaviour that matters.
-- **8/8 sensitive-topic detections, 0 false positives.** 10/10 retention-risk detections, 0 false positives.
+- **8/8 sensitive-topic detections, 0 false positives.** 10/10 retention-risk (churn-risk) detections, 0 false positives.
 - **$1.537 total cost** for 120 messages (~$0.013/message).
 - **6.8s median latency per message** (8.4s mean, 5.0-17.7s range), run sequentially with no concurrency. Messages that trigger the investigation step run slower (11.2s median) than ones that don't (6.3s median) - see [`HOW_THE_AI_WORKS.md`](HOW_THE_AI_WORKS.md) for the full breakdown and why this isn't a production risk.
 - The agentic investigation step is exercised across its full range in this run: correctly declining to guess a reference when none is given, correctly reporting a reference that doesn't exist in the system, and correctly pulling and reasoning over real account data (including a genuine Help Centre search) when one does.
@@ -28,7 +28,7 @@ Real, measured results from running the 120-message dev set (20 more held out an
 
 Read [`HOW_THE_AI_WORKS.md`](HOW_THE_AI_WORKS.md) for the full pipeline glossary and the literal text of all three real prompts used at runtime.
 
-In short: classify + extract (one Haiku 4.5 call, structured JSON output) -> confidence score (pure Python, an additive rubric over the extracted fields, not an LLM-generated percentage) -> routing/guardrails (pure Python - sensitive topics always route to Service; retention risk routes to Success unless it's a formal, routine account-closure request; contradictory signals escalate to a human-reviewed Team Lead Triage queue rather than defaulting anywhere) -> draft a reply (one Sonnet 5 call, grounded in a matched Help Centre/playbook article where one exists) -> if confidence is low, an agentic investigation step (Sonnet 5, tool-use, the model decides for itself which of three read-only lookups are worth making) produces an advisory note for whoever reviews the message.
+In short: classify + extract (one Haiku 4.5 call, structured JSON output) -> confidence score (pure Python, an additive rubric over the extracted fields, not an LLM-generated percentage) -> routing/guardrails (pure Python - sensitive topics always route to Service; retention risk (churn risk) routes to Success unless it's a formal, routine account-closure request; contradictory signals escalate to a human-reviewed Team Lead Triage queue rather than defaulting anywhere) -> draft a reply (one Sonnet 5 call, grounded in a matched Help Centre/playbook article where one exists) -> if confidence is low, an agentic investigation step (Sonnet 5, tool-use, the model decides for itself which of three read-only lookups are worth making) produces an advisory note for whoever reviews the message.
 
 ## Repo structure
 
@@ -41,7 +41,7 @@ In short: classify + extract (one Haiku 4.5 call, structured JSON output) -> con
 - `regenerate_walkthrough.py` - re-runs a chosen set of message IDs with an optional runtime company-name override, for producing a differently-branded dashboard without ever hardcoding a name into a tracked file.
 - `run_eval.py` - a small, fixed eval-as-CI suite (known-answer regression cases) wired to run on every push (see `.github/workflows/eval.yml`).
 - `calibration_report.py` - reads `data/outcome_tags.json` (reviewer-recorded outcomes) and account health signals, and surfaces patterns for a human to act on - the "learning" half of the feedback loop. Never edits `config.py` itself.
-- `commercial_impact.py` - ties measured pipeline signals (Sales routing, expansion flags, retention-risk catches) to an illustrative Net New ARR bridge and account tiering. Prints to the terminal by default; `--html` also writes `results/commercial_impact.html`. See "Commercial impact" in `HOW_THE_AI_WORKS.md`.
+- `commercial_impact.py` - ties measured pipeline signals (Sales routing, expansion flags, retention-risk/churn-risk catches) to an illustrative Net New ARR bridge and account tiering. Prints to the terminal by default; `--html` also writes `results/commercial_impact.html`. See "Commercial impact" in `HOW_THE_AI_WORKS.md`.
 - `preview_server.py` - a restricted local static file server (blocks `.env`, `.git`, `__pycache__` from being served or listed).
 - `data/` - 140 synthetic sample messages (120 dev / 20 held-out) with ground-truth labels, plus mock brand guidelines, help-centre articles, playbooks, backend records, account health/VoC signals, and illustrative outcome tags the pipeline reads from.
 - `deck/architecture_diagram.png` / `.html` - the pipeline architecture diagram, including the feedback loop.
